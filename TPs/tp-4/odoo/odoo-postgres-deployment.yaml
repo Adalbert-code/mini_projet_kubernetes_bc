@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo-postgres
+  namespace: odoo
+  labels:
+    app: odoo-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: odoo-postgres
+  template:
+    metadata:
+      labels:
+        app: odoo-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: odoo-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: odoo-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: odoo-secret
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-postgres
+  namespace: odoo
+  labels:
+    app: odoo-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: odoo-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

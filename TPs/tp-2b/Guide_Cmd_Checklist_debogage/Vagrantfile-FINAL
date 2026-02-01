@@ -1,0 +1,58 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile pour Kubernetes/Minikube avec Ubuntu
+# Version finale testée et fonctionnelle
+# Date: Janvier 2026
+
+Vagrant.configure("2") do |config|
+  # Define Minikube VM
+  config.vm.define "minikube" do |minikube|
+    # VM configuration - Ubuntu 22.04 LTS (Jammy)
+    minikube.vm.box = "ubuntu/jammy64"
+    
+    # Network configuration
+    minikube.vm.network "private_network", type: "static", ip: "192.168.56.10"
+    minikube.vm.hostname = "minikube"
+
+    # VirtualBox provider settings
+    minikube.vm.provider "virtualbox" do |v|
+      v.name = "minikube"
+      v.memory = 6144  # 6GB RAM (minimum recommandé pour Kubernetes)
+      v.cpus = 4       # 4 CPUs (minimum recommandé)
+      
+      # Optimisations VirtualBox
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+    end
+
+    # Provisioning script
+    minikube.vm.provision "shell", 
+      path: "install_minikube.sh", 
+      env: { 'ENABLE_ZSH' => ENV['ENABLE_ZSH'] || 'false' }
+  end
+end
+
+# Notes d'utilisation:
+# 
+# Démarrage:
+#   vagrant up
+#
+# Connexion SSH:
+#   vagrant ssh minikube
+#
+# Arrêt:
+#   vagrant halt
+#
+# Redémarrage:
+#   vagrant reload
+#
+# Reprovisioning (réexécuter le script):
+#   vagrant provision
+#
+# Destruction:
+#   vagrant destroy -f
+#
+# Versions recommandées:
+#   - Ubuntu: 22.04 LTS (jammy64)
+#   - Alternatives: ubuntu/focal64 (20.04), ubuntu/noble64 (24.04)

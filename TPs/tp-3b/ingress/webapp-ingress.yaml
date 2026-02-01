@@ -1,0 +1,40 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webapp-ingress
+  namespace: production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    # Route basée sur le host
+    - host: webapp.local
+      http:
+        paths:
+          # Route /red vers le pod rouge
+          - path: /red
+            pathType: Prefix
+            backend:
+              service:
+                name: service-red
+                port:
+                  number: 8080
+          # Route /blue vers le pod bleu
+          - path: /blue
+            pathType: Prefix
+            backend:
+              service:
+                name: service-blue
+                port:
+                  number: 8080
+          # Route par défaut (load balancing entre red et blue)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: service-nodeport-web
+                port:
+                  number: 8080

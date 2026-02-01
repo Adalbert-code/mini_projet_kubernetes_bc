@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymybuddy
+  labels:
+    app: paymybuddy
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paymybuddy
+  template:
+    metadata:
+      labels:
+        app: paymybuddy
+        tier: frontend
+    spec:
+      containers:
+      - name: paymybuddy
+        image: localhost/paymybuddy:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "password"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql:3306/db_paymybuddy"
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: paymybuddy-storage
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+      volumes:
+      - name: paymybuddy-storage
+        persistentVolumeClaim:
+          claimName: paymybuddy-pvc

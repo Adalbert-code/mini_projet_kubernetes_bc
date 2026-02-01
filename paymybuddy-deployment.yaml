@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymybuddy
+  labels:
+    app: paymybuddy
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paymybuddy
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: paymybuddy
+        tier: frontend
+    spec:
+      containers:
+      - name: paymybuddy
+        image: eazytraining/paymybuddy:latest
+        env:
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "password"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql:3306/db_paymybuddy"
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: paymybuddy-storage
+          mountPath: /data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: paymybuddy-storage
+        persistentVolumeClaim:
+          claimName: paymybuddy-pvc
